@@ -1,6 +1,8 @@
-# Catálogo pet shop con pedidos por WhatsApp
+# Azabache Pet · catálogo con pedidos por WhatsApp
 
-Catálogo web para un pet shop que vende online y entrega con reparto propio en Caballito, Flores, Villa Crespo, Palermo y Microcentro.
+![Azabache Pet](img/logo.png)
+
+Catálogo web de **Azabache Pet**, un pet shop que vende online y entrega con reparto propio en Caballito, Flores, Villa Crespo, Palermo y Microcentro.
 
 El cliente elige productos, arma el carrito, completa sus datos y envía el pedido por WhatsApp con un mensaje ya armado. El negocio confirma stock, total, horario y forma de pago por chat.
 
@@ -26,7 +28,9 @@ Es HTML, CSS y JavaScript puro: no tiene backend, build ni dependencias.
 | `index.html`   | Estructura de la página |
 | `styles.css`   | Estilos |
 | `app.js`       | Filtros, carrito, validación y armado del mensaje |
-| `img/`         | Fotos de los productos |
+| `img/`         | Logo (`logo.png`, `logo-marca.png`, `favicon.png`) y fotos de los productos |
+
+Los colores y las tipografías salen del logo: fondo crema `#fefbf4`, negro azabache `#1b1a16` y verde oliva `#626e3e`, con DM Serif Display para títulos y Jost para el texto. Están definidos como variables al principio de `styles.css`.
 
 ## Cómo usarlo
 

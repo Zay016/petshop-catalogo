@@ -3,16 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pet shop · Catálogo</title>
+  <title>Azabache Pet · Pet shop & delivery</title>
   <meta name="description" content="Alimento balanceado, húmedo, piedritas y paños con entrega en Caballito, Flores, Villa Crespo, Palermo y Microcentro.">
+  <meta name="theme-color" content="#fefbf4">
+  <link rel="icon" type="image/png" href="img/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Jost:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
     <div class="wrap topbar-inner">
       <a href="#" class="brand" id="brand">
-        <svg class="paw" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-paw"/></svg>
-        <span id="brand-name"></span>
+        <img src="img/logo-marca.png" alt="" width="52" height="37">
+        <span class="wordmark" id="brand-name"></span>
       </a>
       <button class="cart-btn" id="open-cart" aria-label="Ver carrito">
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cart"/></svg>
@@ -24,10 +29,14 @@
 
   <main>
     <section class="hero">
-      <div class="wrap">
-        <h1 id="hero-title"></h1>
-        <p class="hero-sub">Elegí los productos, mandanos el pedido por WhatsApp y te confirmamos stock, total y horario.</p>
-        <ul class="zone-chips" id="hero-zonas"></ul>
+      <div class="wrap hero-inner">
+        <div class="hero-text">
+          <h1 id="hero-title"></h1>
+          <p class="hero-sub">Elegí los productos, mandanos el pedido por WhatsApp y te confirmamos stock, total y horario.</p>
+          <ul class="zone-chips" id="hero-zonas"></ul>
+          <a class="hero-cta" href="#catalogo">Ver productos</a>
+        </div>
+        <img class="hero-logo" id="hero-logo" src="img/logo.png" width="900" height="783" alt="">
       </div>
     </section>
 
@@ -71,7 +80,10 @@
   </main>
 
   <footer class="footer">
-    <div class="wrap" id="footer"></div>
+    <div class="wrap footer-inner">
+      <img src="img/logo-marca.png" alt="" width="44" height="31">
+      <div id="footer"></div>
+    </div>
   </footer>
 
   <!-- Barra flotante en celular -->

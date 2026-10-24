@@ -26,8 +26,13 @@
   const filtros = { mascota: "todos", categoria: "todas", texto: "" };
 
   // ---------- Contenido fijo desde config ----------
-  document.title = `${C.nombre} · Catálogo`;
-  $("#brand-name").textContent = C.nombre;
+  document.title = `${C.nombre} · ${C.lema}`;
+  // "Azabache Pet" -> "Azabache <em>Pet</em>", como en el logo
+  const palabras = C.nombre.split(" ");
+  const ultima = palabras.length > 1 ? palabras.pop() : "";
+  $("#brand-name").innerHTML = palabras.join(" ") + (ultima ? ` <em>${ultima}</em>` : "");
+  $("#brand").setAttribute("aria-label", C.nombre);
+  $("#hero-logo").alt = `Logo de ${C.nombre}`;
   $("#hero-title").textContent = C.eslogan;
   $("#hero-zonas").innerHTML = C.zonas.map(z => `<li>${z.barrio}</li>`).join("");
   $("#zonas-body").innerHTML = C.zonas.map(z =>
