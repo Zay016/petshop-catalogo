@@ -74,8 +74,17 @@ y entrá a http://localhost:8000.
 
 Cada vez que hagas push con cambios de precios o stock, la página se actualiza sola.
 
+## Panel de administración
+
+En [`apps-script/`](apps-script/) está el panel privado del negocio, hecho con Google Sheets y Apps Script:
+
+- **Resumen:** ventas, ganancia bruta y neta, margen, gastos, pedidos y ticket promedio, con comparación contra el período anterior. También muestra la caja estimada, el stock valorizado, el recupero de la inversión inicial, las ventas por día, los productos que más ganancia dejan, y las ventas por barrio, por forma de pago y por cliente.
+- **Nueva venta:** se pega el mensaje de WhatsApp que arma el catálogo y se completan solos el cliente y los productos. Al registrarla se descuenta el stock.
+- **Stock:** alertas de stock bajo o agotado, cobertura en días y sugerencia de reposición según las ventas de los últimos 30 días.
+- **Mercadería y gastos:** ingresos de mercadería (con costo promedio ponderado) y gastos.
+
+El catálogo puede leer precios y disponibilidad de la planilla (`catalogoCSV` en `config.js`). Los pasos de instalación están en [`apps-script/INSTALAR.md`](apps-script/INSTALAR.md).
+
 ## Próximos pasos posibles
 
-- Cargar productos desde un Google Sheet publicado como CSV, para editar precios sin tocar código.
-- Backend en Node.js con base de datos para guardar pedidos y descontar stock.
 - Pagos online con Mercado Pago cuando haya clientes recurrentes.

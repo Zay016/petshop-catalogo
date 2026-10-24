@@ -10,6 +10,10 @@ window.CONFIG = {
 
   instagram: "",                       // ej: "azabachepet" (vacío = no se muestra)
 
+  // Dirección CSV de la hoja "Catalogo" publicada desde la planilla de gestión
+  // (Archivo → Compartir → Publicar en la web). Vacío = se usan los productos de productos.js.
+  catalogoCSV: "",
+
   // Zonas de entrega propias. costo = envío en pesos (0 = gratis).
   zonas: [
     { barrio: "Caballito",    dias: "Lunes a sábados", costo: 0 },

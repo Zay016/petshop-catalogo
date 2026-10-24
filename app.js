@@ -1,9 +1,10 @@
 (function () {
   const C = window.CONFIG;
-  const PRODUCTOS = window.PRODUCTOS;
   const CATEGORIAS = window.CATEGORIAS;
-  const byId = Object.fromEntries(PRODUCTOS.map(p => [p.id, p]));
+  let PRODUCTOS = [];   // se cargan al final: de la planilla publicada o de productos.js
+  let byId = {};
   const $ = sel => document.querySelector(sel);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   const pesos = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
   const fmt = n => pesos.format(n);
@@ -18,11 +19,8 @@
     },
   };
 
-  // Carrito: { idProducto: cantidad }. Al cargar se descartan productos borrados o sin stock.
+  // Carrito: { idProducto: cantidad }. Se completa al cargar los productos.
   let cart = {};
-  for (const [id, qty] of Object.entries(store.get("cart", {}))) {
-    if (byId[id] && byId[id].stock && qty > 0) cart[id] = Math.min(qty, 99);
-  }
   const filtros = { mascota: "todos", categoria: "todas", texto: "" };
 
   // ---------- Contenido fijo desde config ----------
@@ -52,11 +50,6 @@
     (C.instagram ? ` · <a href="https://instagram.com/${C.instagram}" target="_blank" rel="noopener">Instagram</a>` : "");
 
   // ---------- Filtros ----------
-  const catsUsadas = Object.keys(CATEGORIAS).filter(c => PRODUCTOS.some(p => p.categoria === c));
-  $("#f-categoria").innerHTML =
-    `<button data-v="todas" aria-pressed="true">Todo</button>` +
-    catsUsadas.map(c => `<button data-v="${c}" aria-pressed="false">${CATEGORIAS[c]}</button>`).join("");
-
   $("#f-mascota").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
     filtros.mascota = b.dataset.v;
@@ -97,19 +90,19 @@
 
   function cardHTML(p) {
     const foto = p.foto
-      ? `<img src="${p.foto}" alt="${p.nombre} ${p.marca} ${p.tamano}" loading="lazy">`
+      ? `<img src="${esc(p.foto)}" alt="${esc(`${p.nombre} ${p.marca} ${p.tamano}`)}" loading="lazy">`
       : `<svg class="ph" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-paw"/></svg>`;
     return `<article class="card${p.stock ? "" : " off"}">
       <div class="thumb">${foto}
         <span class="tag ${p.stock ? "ok" : "no"}">${p.stock ? "Disponible" : "Sin stock"}</span>
       </div>
       <div class="card-body">
-        <span class="brand-line">${p.marca}</span>
-        <h3>${p.nombre}</h3>
-        <span class="size">${p.tamano}</span>
+        <span class="brand-line">${esc(p.marca)}</span>
+        <h3>${esc(p.nombre)}</h3>
+        <span class="size">${esc(p.tamano)}</span>
         <div class="card-foot">
           <span class="price">${fmt(p.precio)}</span>
-          <div class="ctrl" data-ctrl="${p.id}">${controlHTML(p)}</div>
+          <div class="ctrl" data-ctrl="${esc(p.id)}">${controlHTML(p)}</div>
         </div>
       </div>
     </article>`;
@@ -170,7 +163,7 @@
     $("#empty-cart").hidden = ls.length > 0;
     form.hidden = ls.length === 0;
     $("#lines").innerHTML = ls.map(({ p, qty }) => `<li>
-      <div><div class="line-name">${p.nombre}</div><div class="line-meta">${p.marca} · ${p.tamano} · ${fmt(p.precio)} c/u</div></div>
+      <div><div class="line-name">${esc(p.nombre)}</div><div class="line-meta">${esc(p.marca)} · ${esc(p.tamano)} · ${fmt(p.precio)} c/u</div></div>
       <div class="line-total">${fmt(p.precio * qty)}</div>
       <div class="line-actions">
         <div class="stepper">
@@ -269,6 +262,68 @@
   overlay.addEventListener("click", cerrar);
   document.addEventListener("keydown", e => { if (e.key === "Escape" && drawer.classList.contains("open")) cerrar(); });
 
-  renderGrid();
+  // ---------- Productos ----------
+  function usarProductos(lista) {
+    PRODUCTOS = lista;
+    byId = Object.fromEntries(PRODUCTOS.map(p => [p.id, p]));
+    // Del carrito guardado se descartan productos borrados o sin stock.
+    cart = {};
+    for (const [id, qty] of Object.entries(store.get("cart", {}))) {
+      if (byId[id] && byId[id].stock && qty > 0) cart[id] = Math.min(qty, 99);
+    }
+    const catsUsadas = Object.keys(CATEGORIAS).filter(c => PRODUCTOS.some(p => p.categoria === c));
+    $("#f-categoria").innerHTML =
+      `<button data-v="todas" aria-pressed="true">Todo</button>` +
+      catsUsadas.map(c => `<button data-v="${c}" aria-pressed="false">${CATEGORIAS[c]}</button>`).join("");
+    filtros.categoria = "todas";
+    renderGrid();
+    renderCart();
+  }
+
+  // CSV de la hoja "Catalogo" publicada desde la planilla de gestión (ver apps-script/INSTALAR.md).
+  function parsearCSV(texto) {
+    const filas = [];
+    let fila = [], campo = "", comillas = false;
+    for (let i = 0; i < texto.length; i++) {
+      const c = texto[i];
+      if (comillas) {
+        if (c === '"' && texto[i + 1] === '"') { campo += '"'; i++; }
+        else if (c === '"') comillas = false;
+        else campo += c;
+      } else if (c === '"') comillas = true;
+      else if (c === ",") { fila.push(campo); campo = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && texto[i + 1] === "\n") i++;
+        fila.push(campo); filas.push(fila); fila = []; campo = "";
+      } else campo += c;
+    }
+    if (campo || fila.length) { fila.push(campo); filas.push(fila); }
+    const [enc, ...datos] = filas;
+    return datos
+      .map(f => Object.fromEntries(enc.map((h, j) => [h.trim(), (f[j] ?? "").trim()])))
+      .filter(p => p.id)
+      .map(p => ({
+        ...p,
+        precio: Number(String(p.precio).replace(/[^\d,.-]/g, "").replace(/\.(?=\d{3}\b)/g, "").replace(",", ".")) || 0,
+        stock: /^(true|verdadero|s[ií]|1)$/i.test(p.stock),
+      }));
+  }
+
+  async function cargarProductos() {
+    if (!C.catalogoCSV) return usarProductos(window.PRODUCTOS);
+    $("#result-count").textContent = "Cargando productos…";
+    try {
+      const res = await fetch(C.catalogoCSV, { cache: "no-store" });
+      if (!res.ok) throw new Error(res.status);
+      const lista = parsearCSV(await res.text());
+      if (!lista.length) throw new Error("catálogo vacío");
+      usarProductos(lista);
+    } catch (err) {
+      console.warn("No se pudo leer el catálogo de la planilla; uso productos.js", err);
+      usarProductos(window.PRODUCTOS);
+    }
+  }
+
   renderCart();
+  cargarProductos();
 })();

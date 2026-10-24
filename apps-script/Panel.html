@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Jost:wght@400;500;600&display=swap">
+  <style>
+    :root {
+      --bg: #fefbf4; --surface: #ffffff; --ink: #1b1a16; --muted: #6b675c; --line: #e8e3d5;
+      --brand: #626e3e; --brand-dark: #4c5630; --brand-soft: #eef0e2; --track: #f1eee4;
+      --warn: #8a5300; --warn-bg: #fdf1dc; --crit: #b42318; --crit-bg: #fdecea; --good: #3d6b35; --good-bg: #e9f2e5;
+      --radius: 14px; --serif: "DM Serif Display", Georgia, serif;
+      font-family: "Jost", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); line-height: 1.4; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    h1, h2, h3 { margin: 0; line-height: 1.15; }
+    h2 { font-family: var(--serif); font-weight: 400; font-size: 1.35rem; }
+    h3 { font-size: .95rem; font-weight: 600; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+    .muted { color: var(--muted); }
+    .num { font-variant-numeric: tabular-nums; }
+
+    /* Encabezado y pestañas */
+    .top { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
+    .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .brand img { height: 34px; width: auto; }
+    .brand b { font-family: var(--serif); font-weight: 400; font-size: 1.3rem; white-space: nowrap; }
+    .brand b em { font-style: normal; color: var(--brand); }
+    .brand .role { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .user { font-size: .85rem; color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 12px; font-weight: 500; text-decoration: none; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+    .btn:hover { background: var(--track); }
+    .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .btn.primary:hover { background: var(--brand-dark); }
+    .btn.dark { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+    .tabs button { border: 0; background: none; padding: 10px 14px; font-weight: 500; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }
+    .tabs button[aria-selected="true"] { color: var(--ink); border-color: var(--brand); }
+
+    main { padding: 20px 0 60px; }
+    section[hidden] { display: none; }
+    .section-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .seg { display: inline-flex; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+    .seg button { border: 0; background: none; padding: 6px 12px; border-radius: 999px; font-weight: 500; color: var(--muted); font-size: .9rem; }
+    .seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; min-width: 0; }
+    .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+    .grid { display: grid; gap: 12px; }
+    .kpis { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); margin-bottom: 12px; }
+    .two { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 12px; }
+
+    /* Indicadores */
+    .kpi .label { font-size: .85rem; color: var(--muted); }
+    .kpi .value { font-size: 1.6rem; font-weight: 600; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+    .kpi .sub { font-size: .82rem; color: var(--muted); }
+    .delta { font-weight: 600; }
+    .delta.up { color: var(--good); }
+    .delta.down { color: var(--crit); }
+    .progress { height: 8px; background: var(--track); border-radius: 999px; overflow: hidden; margin: 8px 0 4px; }
+    .progress > div { height: 100%; background: var(--brand); border-radius: 999px; }
+
+    /* Gráfico de barras por día */
+    .chart { position: relative; }
+    .chart svg { display: block; width: 100%; overflow: visible; }
+    .chart .axis { font-size: 11px; fill: var(--muted); font-family: inherit; }
+    .chart .grid-line { stroke: var(--line); stroke-width: 1; }
+    .chart .bar { fill: var(--brand); }
+    .chart .hit { fill: transparent; }
+    .chart .hit:hover + .bar, .chart .bar.on { fill: var(--brand-dark); }
+    .tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; font-size: .82rem; padding: 6px 10px; border-radius: 8px; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -8px; }
+    .tip[hidden] { display: none; }
+    details.as-table { margin-top: 10px; font-size: .85rem; }
+    details.as-table summary { cursor: pointer; color: var(--muted); }
+
+    /* Listas con barra */
+    .bars { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+    .bars li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: .9rem; }
+    .bars .track { grid-column: 1 / -1; height: 8px; background: var(--track); border-radius: 999px; overflow: hidden; }
+    .bars .fill { height: 100%; background: var(--brand); border-radius: 0 4px 4px 0; }
+    .bars .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .empty { color: var(--muted); font-size: .9rem; padding: 8px 0; }
+
+    /* Tablas */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    th { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 500; white-space: nowrap; }
+    td.r, th.r { text-align: right; }
+    tr:last-child td { border-bottom: 0; }
+    #stock-table td:first-child, .items td:first-child { min-width: 200px; }
+    .kpi .value.neg { color: var(--crit); }
+    tr.anulada td { color: var(--muted); text-decoration: line-through; }
+    tr.anulada td:last-child { text-decoration: none; }
+
+    .status { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+    .status svg { width: 12px; height: 12px; }
+    .status.crit { color: var(--crit); background: var(--crit-bg); }
+    .status.warn { color: var(--warn); background: var(--warn-bg); }
+    .status.good { color: var(--good); background: var(--good-bg); }
+    .alerts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+
+    /* Formularios */
+    form .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 12px; }
+    label { display: block; font-size: .82rem; font-weight: 500; }
+    label .opt { color: var(--muted); font-weight: 400; }
+    input, select, textarea { display: block; width: 100%; margin-top: 4px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--ink); outline-offset: -1px; background: var(--surface); }
+    .full { grid-column: 1 / -1; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+    .row > label { flex: 1 1 180px; }
+    .row > label.qty { flex: 0 0 110px; }
+    .items td input { margin: 0; padding: 6px 8px; width: 110px; text-align: right; }
+    .items td input.qty { width: 70px; }
+    .link-btn { border: 0; background: none; color: var(--muted); text-decoration: underline; padding: 0; font-size: .85rem; }
+    .totals { display: grid; gap: 4px; margin-top: 12px; max-width: 360px; margin-left: auto; }
+    .totals div { display: flex; justify-content: space-between; color: var(--muted); }
+    .totals .grand { color: var(--ink); font-weight: 600; font-size: 1.1rem; }
+    .form-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+    .check { display: flex; align-items: center; gap: 8px; font-weight: 400; }
+    .check input { width: auto; margin: 0; }
+    .note { font-size: .85rem; color: var(--muted); margin: 6px 0 0; }
+    .warn-text { color: var(--warn); font-size: .85rem; }
+
+    .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 12px; z-index: 50; max-width: calc(100% - 32px); }
+    .toast.error { background: var(--crit); }
+    .toast[hidden] { display: none; }
+    .loading { text-align: center; padding: 80px 16px; color: var(--muted); }
+
+    @media (max-width: 640px) {
+      .user, .brand .role { display: none; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .kpi .value { font-size: 1.3rem; }
+      .hide-sm { display: none; }
+      #stock-table td:first-child { min-width: 150px; }
+      /* Ítems de la venta: una tarjeta por producto en vez de tabla */
+      .items thead { display: none; }
+      .items tr { display: grid; grid-template-columns: auto auto 1fr auto; gap: 8px 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+      .items td { padding: 0; border: 0; min-width: 0 !important; }
+      .items td:first-child { grid-column: 1 / -1; }
+      .items td input { width: 96px; }
+    }
+    @media (max-width: 420px) {
+      .brand > div { display: none; }
+      .top-actions .btn { padding: 7px 10px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-row">
+      <div class="brand">
+        <img src="https://zay016.github.io/petshop-catalogo/img/logo-marca.png" alt="">
+        <div><b>Azabache <em>Pet</em></b><div class="role">Administración</div></div>
+      </div>
+      <div class="top-actions">
+        <span class="user" id="user"></span>
+        <a class="btn" id="sheet-link" href="#" target="_blank" rel="noopener">Planilla</a>
+        <button class="btn" id="reload" title="Volver a leer la planilla">Actualizar</button>
+      </div>
+    </div>
+    <nav class="wrap tabs" role="tablist">
+      <button role="tab" data-tab="resumen" aria-selected="true">Resumen</button>
+      <button role="tab" data-tab="venta" aria-selected="false">Nueva venta</button>
+      <button role="tab" data-tab="stock" aria-selected="false">Stock</button>
+      <button role="tab" data-tab="mov" aria-selected="false">Mercadería y gastos</button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <div class="loading" id="loading">Cargando datos de la planilla…</div>
+
+    <!-- RESUMEN -->
+    <section id="tab-resumen" hidden>
+      <div class="section-head">
+        <h2>Cómo viene el negocio</h2>
+        <div class="seg" id="periodo">
+          <button data-p="7d" aria-pressed="false">7 días</button>
+          <button data-p="mes" aria-pressed="true">Este mes</button>
+          <button data-p="mesant" aria-pressed="false">Mes pasado</button>
+          <button data-p="90d" aria-pressed="false">90 días</button>
+          <button data-p="todo" aria-pressed="false">Todo</button>
+        </div>
+      </div>
+
+      <div class="grid kpis" id="kpis"></div>
+      <div class="grid kpis" id="kpis-negocio"></div>
+
+      <div class="card">
+        <div class="card-head"><h3>Ventas por día</h3><span class="muted" id="chart-note"></span></div>
+        <div class="chart" id="chart"><div class="tip" id="tip" hidden></div></div>
+        <details class="as-table"><summary>Ver como tabla</summary><div class="table-wrap" id="chart-table"></div></details>
+      </div>
+
+      <div class="grid two">
+        <div class="card"><div class="card-head"><h3>Productos que más ganancia dejan</h3></div><ul class="bars" id="top-productos"></ul></div>
+        <div class="card"><div class="card-head"><h3>Ventas por barrio</h3></div><ul class="bars" id="por-barrio"></ul></div>
+        <div class="card"><div class="card-head"><h3>Formas de pago</h3></div><ul class="bars" id="por-pago"></ul></div>
+        <div class="card"><div class="card-head"><h3>Clientes</h3><span class="muted" id="clientes-note"></span></div><ul class="bars" id="top-clientes"></ul></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="card-head"><h3>Últimas ventas</h3><span class="muted">Anular devuelve el stock</span></div>
+        <div class="table-wrap" id="ultimas"></div>
+      </div>
+    </section>
+
+    <!-- NUEVA VENTA -->
+    <section id="tab-venta" hidden>
+      <div class="section-head"><h2>Registrar una venta</h2></div>
+      <div class="grid two" style="margin-top:0">
+        <div class="card">
+          <h3>Pegar el pedido de WhatsApp</h3>
+          <p class="note">Copiá el mensaje que llegó desde el catálogo y pegalo acá: se completan el cliente y los productos.</p>
+          <textarea id="wa-text" rows="7" placeholder="¡Hola Azabache Pet! Quiero hacer este pedido: …"></textarea>
+          <div class="form-foot"><span class="warn-text" id="wa-warn"></span><button class="btn dark" id="wa-parse" type="button">Completar desde el mensaje</button></div>
+        </div>
+        <div class="card">
+          <h3>Agregar productos</h3>
+          <div class="row" style="margin-top:10px">
+            <label>Producto<select id="add-prod"></select></label>
+            <label class="qty">Cantidad<input id="add-qty" type="number" min="1" value="1" inputmode="numeric"></label>
+            <button class="btn primary" id="add-btn" type="button">Agregar</button>
+          </div>
+          <p class="note" id="add-stock"></p>
+        </div>
+      </div>
+
+      <form class="card" id="venta-form" style="margin-top:12px" novalidate>
+        <div class="table-wrap">
+          <table class="items">
+            <thead><tr><th>Producto</th><th class="r">Cant.</th><th class="r">Precio unit.</th><th class="r hide-sm">Stock</th><th class="r">Subtotal</th><th></th></tr></thead>
+            <tbody id="items"></tbody>
+          </table>
+        </div>
+        <p class="empty" id="items-empty">Todavía no hay productos en esta venta.</p>
+        <div class="totals">
+          <div><span>Costo de la mercadería</span><span class="num" id="v-costo"></span></div>
+          <div><span>Ganancia</span><span class="num" id="v-ganancia"></span></div>
+          <div class="grand"><span>Total</span><span class="num" id="v-total"></span></div>
+        </div>
+
+        <h3 style="margin:18px 0 10px">Cliente y entrega</h3>
+        <div class="fields">
+          <label>Nombre<input name="cliente" required autocomplete="off"></label>
+          <label>Teléfono<input name="telefono" inputmode="tel" autocomplete="off"></label>
+          <label>Barrio<select name="barrio" id="v-barrio"></select></label>
+          <label>Dirección<input name="direccion" autocomplete="off"></label>
+          <label>Forma de pago<select name="pago" id="v-pago"></select></label>
+          <label>Fecha y hora<input name="fecha" type="datetime-local" id="v-fecha"></label>
+          <label class="full">Notas <span class="opt">(opcional)</span><input name="notas" autocomplete="off"></label>
+        </div>
+        <div class="form-foot">
+          <label class="check"><input type="checkbox" name="permitirSinStock"> Registrar aunque no alcance el stock</label>
+          <div class="row">
+            <button class="btn" type="button" id="v-clear">Vaciar</button>
+            <button class="btn primary" type="submit" id="v-submit">Registrar venta</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- STOCK -->
+    <section id="tab-stock" hidden>
+      <div class="section-head">
+        <h2>Stock y reposición</h2>
+        <div class="seg" id="stock-filtro">
+          <button data-f="todos" aria-pressed="true">Todos</button>
+          <button data-f="alertas" aria-pressed="false">Solo alertas</button>
+          <button data-f="reponer" aria-pressed="false">A reponer</button>
+        </div>
+      </div>
+      <div class="alerts" id="stock-alerts"></div>
+      <div class="card">
+        <div class="table-wrap" id="stock-table"></div>
+        <p class="note" id="stock-note"></p>
+      </div>
+    </section>
+
+    <!-- MERCADERÍA Y GASTOS -->
+    <section id="tab-mov" hidden>
+      <div class="section-head"><h2>Mercadería y gastos</h2></div>
+      <div class="grid two" style="margin-top:0">
+        <form class="card" id="compra-form" novalidate>
+          <h3>Ingreso de mercadería</h3>
+          <p class="note">Suma el stock y actualiza el costo (promedio entre lo que había y lo que entra).</p>
+          <div class="fields" style="margin-top:10px">
+            <label class="full">Producto<select name="producto_id" id="c-prod"></select></label>
+            <label>Cantidad<input name="cantidad" type="number" min="1" inputmode="numeric" required></label>
+            <label>Costo por unidad<input name="costo_unit" type="number" min="0" inputmode="numeric" required></label>
+            <label>Proveedor <span class="opt">(opcional)</span><input name="proveedor" autocomplete="off"></label>
+            <label>Fecha<input name="fecha" type="date" id="c-fecha"></label>
+          </div>
+          <p class="note" id="c-preview"></p>
+          <div class="form-foot"><span></span><button class="btn primary" type="submit">Registrar ingreso</button></div>
+        </form>
+
+        <form class="card" id="gasto-form" novalidate>
+          <h3>Gasto</h3>
+          <p class="note">Envíos, embalaje, publicidad, herramientas… todo lo que no es mercadería.</p>
+          <div class="fields" style="margin-top:10px">
+            <label class="full">Concepto<input name="concepto" required autocomplete="off"></label>
+            <label>Categoría<select name="categoria" id="g-cat"></select></label>
+            <label>Monto<input name="monto" type="number" min="1" inputmode="numeric" required></label>
+            <label>Fecha<input name="fecha" type="date" id="g-fecha"></label>
+            <label>Notas <span class="opt">(opcional)</span><input name="notas" autocomplete="off"></label>
+          </div>
+          <div class="form-foot"><span></span><button class="btn primary" type="submit">Registrar gasto</button></div>
+        </form>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div class="card-head"><h3>Últimos movimientos</h3></div>
+        <div class="table-wrap" id="movimientos"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-alert" viewBox="0 0 16 16"><path fill="currentColor" d="M8 1.5 15 14H1L8 1.5zm-.8 4.5v4h1.6V6H7.2zm0 5.2v1.6h1.6v-1.6H7.2z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 16 16"><path fill="currentColor" d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1zm2.5 3.4L8 6.9 5.5 4.4 4.4 5.5 6.9 8l-2.5 2.5 1.1 1.1L8 9.1l2.5 2.5 1.1-1.1L9.1 8l2.5-2.5-1.1-1.1z"/></symbol>
+    <symbol id="i-ok" viewBox="0 0 16 16"><path fill="currentColor" d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1zm3.3 4.2L7 9.5 4.7 7.2 3.6 8.3 7 11.7l5.4-5.4-1.1-1.1z"/></symbol>
+  </svg>
+
+<script>
+(function () {
+  // ───────── utilidades ─────────
+  const $ = s => document.querySelector(s);
+  const pesosFmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
+  const fmt = n => pesosFmt.format(Math.round(n || 0));
+  const fmtK = n => Math.abs(n) >= 1e6 ? '$ ' + (n / 1e6).toLocaleString('es-AR', { maximumFractionDigits: 1 }) + ' M'
+    : Math.abs(n) >= 1e3 ? '$ ' + Math.round(n / 1e3) + ' k' : '$ ' + Math.round(n);
+  const pct = n => (n * 100).toLocaleString('es-AR', { maximumFractionDigits: 0 }) + '%';
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const normalizar = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const DIA = 86400000;
+  const inicioDia = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+  const fechaCorta = d => d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
+  const fechaHora = d => d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  const aInputLocal = (d, conHora) => {
+    const p = n => String(n).padStart(2, '0');
+    const base = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    return conHora ? `${base}T${p(d.getHours())}:${p(d.getMinutes())}` : base;
+  };
+  const icono = { crit: 'i-x', warn: 'i-alert', good: 'i-ok' };
+  const estado = (tipo, texto) => `<span class="status ${tipo}"><svg aria-hidden="true"><use href="#${icono[tipo]}"/></svg>${esc(texto)}</span>`;
+  const nombreProd = p => `${p.nombre} (${p.marca}, ${p.tamano})`;
+
+  function llamar(fn, ...args) {
+    return new Promise((ok, mal) => google.script.run.withSuccessHandler(ok).withFailureHandler(mal)[fn](...args));
+  }
+
+  let toastTimer;
+  function aviso(texto, error) {
+    const t = $('#toast');
+    t.textContent = texto; t.className = 'toast' + (error ? ' error' : ''); t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, error ? 7000 : 3500);
+  }
+  const mensajeError = e => String((e && e.message) || e).replace(/^Error:\s*/, '');
+
+  // ───────── estado ─────────
+  let D = null;                 // datos de la planilla
+  let periodo = 'mes';
+  let filtroStock = 'todos';
+  let venta = [];               // [{ id, cantidad, precio }]
+  let anulando = null;          // venta_id con confirmación abierta
+
+  function preparar(datos) {
+    datos.productos.forEach(p => { p.stock = Number(p.stock) || 0; p.costo = Number(p.costo) || 0; p.precio = Number(p.precio) || 0; p.stock_minimo = Number(p.stock_minimo) || 0; p.activo = /^(s[ií]|true|verdadero)$/i.test(String(p.activo).trim()); });
+    datos.ventas.forEach(v => { v.fecha = new Date(v.fecha); ['cantidad', 'precio_unit', 'costo_unit', 'total_linea', 'ganancia_linea'].forEach(k => v[k] = Number(v[k]) || 0); });
+    datos.compras.forEach(c => { c.fecha = new Date(c.fecha); c.total = Number(c.total) || 0; c.cantidad = Number(c.cantidad) || 0; });
+    datos.gastos.forEach(g => { g.fecha = new Date(g.fecha); g.monto = Number(g.monto) || 0; });
+    datos.porId = Object.fromEntries(datos.productos.map(p => [p.id, p]));
+    return datos;
+  }
+
+  async function cargar() {
+    try {
+      D = preparar(await llamar('getDatos'));
+      $('#loading').hidden = true;
+      $('#user').textContent = D.usuario || '';
+      $('#sheet-link').href = D.planilla;
+      llenarSelects();
+      render();
+      if (!document.querySelector('section:not([hidden])')) mostrar('resumen');
+    } catch (e) {
+      $('#loading').textContent = mensajeError(e);
+    }
+  }
+
+  function aplicarRespuesta(r) {
+    D = preparar(r.datos);
+    llenarSelects();
+    render();
+    aviso(r.mensaje);
+  }
+
+  // ───────── pestañas ─────────
+  function mostrar(tab) {
+    document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+    document.querySelectorAll('main section').forEach(s => { s.hidden = s.id !== 'tab-' + tab; });
+    if (tab === 'resumen' && D) renderGrafico();
+  }
+  document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && D) mostrar(b.dataset.tab); });
+  $('#reload').addEventListener('click', () => { $('#reload').disabled = true; cargar().finally(() => { $('#reload').disabled = false; }); });
+
+  function render() { renderResumen(); renderVenta(); renderStock(); renderMovimientos(); }
+
+  // ───────── períodos ─────────
+  function rango(p) {
+    const hoy = inicioDia(new Date());
+    const manana = new Date(hoy.getTime() + DIA);
+    if (p === '7d') return { desde: new Date(hoy.getTime() - 6 * DIA), hasta: manana };
+    if (p === '90d') return { desde: new Date(hoy.getTime() - 89 * DIA), hasta: manana };
+    if (p === 'mes') return { desde: new Date(hoy.getFullYear(), hoy.getMonth(), 1), hasta: manana };
+    if (p === 'mesant') return { desde: new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1), hasta: new Date(hoy.getFullYear(), hoy.getMonth(), 1) };
+    const fechas = [...D.ventas, ...D.gastos].map(x => x.fecha.getTime()).filter(Boolean);
+    return { desde: fechas.length ? inicioDia(Math.min(...fechas)) : hoy, hasta: manana, todo: true };
+  }
+  const dentro = (f, r) => f >= r.desde && f < r.hasta;
+  const lineasValidas = () => D.ventas.filter(v => v.estado !== 'Anulada');
+
+  function metricas(r) {
+    const lineas = lineasValidas().filter(v => dentro(v.fecha, r));
+    const pedidos = new Set(lineas.map(v => v.venta_id));
+    const ventas = lineas.reduce((s, v) => s + v.total_linea, 0);
+    const bruta = lineas.reduce((s, v) => s + v.ganancia_linea, 0);
+    const gastos = D.gastos.filter(g => dentro(g.fecha, r)).reduce((s, g) => s + g.monto, 0);
+    return { lineas, ventas, bruta, gastos, neta: bruta - gastos, pedidos: pedidos.size, ticket: pedidos.size ? ventas / pedidos.size : 0, margen: ventas ? bruta / ventas : 0 };
+  }
+
+  document.getElementById('periodo').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    periodo = b.dataset.p;
+    document.querySelectorAll('#periodo button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    renderResumen();
+  });
+
+  // ───────── resumen ─────────
+  function deltaHTML(actual, anterior) {
+    if (anterior == null) return '';
+    if (!anterior) return actual ? '<span class="delta up">nuevo</span>' : '';
+    const d = (actual - anterior) / Math.abs(anterior);
+    return `<span class="delta ${d >= 0 ? 'up' : 'down'}">${d >= 0 ? '▲' : '▼'} ${pct(Math.abs(d))}</span> vs. período anterior`;
+  }
+
+  function kpi(label, value, sub, negativo) {
+    return `<div class="card kpi"><div class="label">${label}</div><div class="value${negativo ? ' neg' : ''}">${value}</div><div class="sub">${sub || '&nbsp;'}</div></div>`;
+  }
+
+  function renderResumen() {
+    const r = rango(periodo);
+    const m = metricas(r);
+    const largo = r.hasta - r.desde;
+    const prev = r.todo ? null : metricas({ desde: new Date(r.desde.getTime() - largo), hasta: r.desde });
+
+    $('#kpis').innerHTML = [
+      kpi('Ventas', fmt(m.ventas), deltaHTML(m.ventas, prev && prev.ventas)),
+      kpi('Ganancia bruta', fmt(m.bruta), m.ventas ? `margen ${pct(m.margen)}` : ''),
+      kpi('Gastos', fmt(m.gastos), 'envíos, publicidad, etc.'),
+      kpi('Ganancia neta', fmt(m.neta), deltaHTML(m.neta, prev && prev.neta), m.neta < 0),
+      kpi('Pedidos', m.pedidos.toLocaleString('es-AR'), deltaHTML(m.pedidos, prev && prev.pedidos)),
+      kpi('Ticket promedio', fmt(m.ticket), 'por pedido'),
+    ].join('');
+
+    // Indicadores de todo el negocio (no dependen del período)
+    const todo = metricas({ desde: new Date(0), hasta: new Date(8.64e15) });
+    const compras = D.compras.reduce((s, c) => s + c.total, 0);
+    const caja = D.config.capital_inicial + todo.ventas - compras - todo.gastos;
+    const activos = D.productos.filter(p => p.activo);
+    const stockCosto = activos.reduce((s, p) => s + Math.max(p.stock, 0) * p.costo, 0);
+    const stockVenta = activos.reduce((s, p) => s + Math.max(p.stock, 0) * p.precio, 0);
+    const recupero = D.config.capital_inicial ? Math.max(todo.neta, 0) / D.config.capital_inicial : 0;
+    $('#kpis-negocio').innerHTML = [
+      kpi('Caja estimada', fmt(caja), caja < 0 ? 'se compró más de lo que entró: revisar el capital en Config'
+        : `capital ${fmtK(D.config.capital_inicial)} + ventas − compras − gastos`, caja < 0),
+      kpi('Stock valorizado', fmt(stockCosto), `a precio de venta: ${fmt(stockVenta)}`),
+      `<div class="card kpi"><div class="label">Recupero de la inversión</div><div class="value">${pct(recupero)}</div>
+        <div class="progress" role="img" aria-label="${pct(recupero)} recuperado"><div style="width:${Math.min(recupero, 1) * 100}%"></div></div>
+        <div class="sub">ganancia neta acumulada ${fmt(todo.neta)} de ${fmt(D.config.capital_inicial)}</div></div>`,
+    ].join('');
+
+    renderGrafico();
+
+    // Top productos por ganancia
+    const porProd = agrupar(m.lineas, v => v.producto, v => v.ganancia_linea, v => v.cantidad);
+    barras('#top-productos', porProd.slice(0, 6), x => `${fmt(x.valor)} · ${x.extra} u.`, 'Sin ventas en este período.');
+    const porBarrio = agrupar(m.lineas, v => v.barrio || 'Sin barrio', v => v.total_linea);
+    barras('#por-barrio', porBarrio, x => fmt(x.valor), 'Sin ventas en este período.');
+    const porPago = agrupar(m.lineas, v => v.pago || 'Sin dato', v => v.total_linea);
+    barras('#por-pago', porPago, x => `${fmt(x.valor)} · ${m.ventas ? pct(x.valor / m.ventas) : ''}`, 'Sin ventas en este período.');
+
+    // Clientes: identificados por teléfono (o nombre si no hay teléfono)
+    const clave = v => String(v.telefono || '').replace(/\D/g, '') || normalizar(v.cliente);
+    const pedidosPorCliente = {};
+    for (const v of lineasValidas()) (pedidosPorCliente[clave(v)] = pedidosPorCliente[clave(v)] || new Set()).add(v.venta_id);
+    const clientesPeriodo = new Set(m.lineas.map(clave));
+    const recurrentes = [...clientesPeriodo].filter(c => pedidosPorCliente[c].size > 1).length;
+    $('#clientes-note').textContent = clientesPeriodo.size ? `${clientesPeriodo.size} clientes · ${recurrentes} repiten` : '';
+    const porCliente = agrupar(m.lineas, v => v.cliente || 'Sin nombre', v => v.total_linea);
+    barras('#top-clientes', porCliente.slice(0, 5), x => fmt(x.valor), 'Sin ventas en este período.');
+
+    renderUltimas();
+  }
+
+  function agrupar(lineas, claveFn, valorFn, extraFn) {
+    const m = new Map();
+    for (const l of lineas) {
+      const k = claveFn(l);
+      const x = m.get(k) || { nombre: k, valor: 0, extra: 0 };
+      x.valor += valorFn(l); if (extraFn) x.extra += extraFn(l);
+      m.set(k, x);
+    }
+    return [...m.values()].sort((a, b) => b.valor - a.valor);
+  }
+
+  function barras(sel, items, textoFn, vacio) {
+    const el = $(sel);
+    if (!items.length) { el.innerHTML = `<li class="empty">${vacio}</li>`; return; }
+    const max = Math.max(...items.map(x => x.valor), 1);
+    el.innerHTML = items.map(x => `<li><span class="name" title="${esc(x.nombre)}">${esc(x.nombre)}</span><span class="num">${textoFn(x)}</span>
+      <div class="track"><div class="fill" style="width:${Math.max(x.valor / max * 100, x.valor > 0 ? 2 : 0)}%"></div></div></li>`).join('');
+  }
+
+  // Barras por día (o por semana si el período es largo). Una sola serie: no lleva leyenda.
+  function renderGrafico() {
+    const cont = $('#chart');
+    if (!cont.offsetWidth) return;  // pestaña oculta: se dibuja al mostrarla
+    const r = rango(periodo);
+    const dias = Math.round((r.hasta - r.desde) / DIA);
+    const paso = dias > 62 ? 7 : 1;
+    const baldes = [];
+    for (let t = r.desde.getTime(); t < r.hasta.getTime(); t += paso * DIA) baldes.push({ desde: new Date(t), ventas: 0, pedidos: new Set() });
+    for (const v of lineasValidas()) {
+      if (!dentro(v.fecha, r)) continue;
+      const i = Math.floor((inicioDia(v.fecha) - r.desde) / (paso * DIA));
+      if (baldes[i]) { baldes[i].ventas += v.total_linea; baldes[i].pedidos.add(v.venta_id); }
+    }
+    $('#chart-note').textContent = paso === 7 ? 'agrupado por semana' : '';
+
+    const W = cont.offsetWidth, H = 220, m = { t: 10, r: 4, b: 26, l: 54 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const max = Math.max(...baldes.map(b => b.ventas), 0);
+    const tope = max ? niceMax(max) : 1000;
+    const y = v => m.t + ih - v / tope * ih;
+    const band = iw / baldes.length;
+    const bw = Math.max(Math.min(band - 2, 28), 1);
+    const cadaN = Math.ceil(baldes.length / Math.max(Math.floor(iw / 48), 1));
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="Ventas por ${paso === 7 ? 'semana' : 'día'}">`;
+    for (let i = 0; i <= 4; i++) {
+      const v = tope / 4 * i, yy = y(v);
+      svg += `<line class="grid-line" x1="${m.l}" x2="${W - m.r}" y1="${yy}" y2="${yy}"/><text class="axis" x="${m.l - 8}" y="${yy + 4}" text-anchor="end">${fmtK(v)}</text>`;
+    }
+    baldes.forEach((b, i) => {
+      const x = m.l + i * band + (band - bw) / 2;
+      const h = b.ventas ? Math.max(ih - (y(b.ventas) - m.t), 2) : 0;
+      const top = m.t + ih - h, rr = Math.min(4, bw / 2, h);
+      svg += `<rect class="hit" data-i="${i}" x="${m.l + i * band}" y="${m.t}" width="${band}" height="${ih}"/>`;
+      svg += h ? `<path class="bar" data-i="${i}" d="M${x},${m.t + ih} V${top + rr} Q${x},${top} ${x + rr},${top} H${x + bw - rr} Q${x + bw},${top} ${x + bw},${top + rr} V${m.t + ih} Z"/>` : '<g></g>';
+      if (i % cadaN === 0) svg += `<text class="axis" x="${m.l + i * band + band / 2}" y="${H - 8}" text-anchor="middle">${fechaCorta(b.desde)}</text>`;
+    });
+    svg += '</svg>';
+    cont.querySelectorAll('svg').forEach(s => s.remove());
+    cont.insertAdjacentHTML('afterbegin', svg);
+
+    const tip = $('#tip');
+    cont.querySelectorAll('.hit').forEach(h => {
+      h.addEventListener('mouseenter', () => {
+        const b = baldes[h.dataset.i];
+        tip.innerHTML = `<b>${paso === 7 ? 'Semana del ' : ''}${fechaCorta(b.desde)}</b> · ${fmt(b.ventas)} · ${b.pedidos.size} ${b.pedidos.size === 1 ? 'pedido' : 'pedidos'}`;
+        tip.style.left = Math.min(Math.max(Number(h.getAttribute('x')) + band / 2, 90), W - 90) + 'px';
+        tip.style.top = (b.ventas ? y(b.ventas) : m.t + ih) + 'px';
+        tip.hidden = false;
+      });
+      h.addEventListener('mouseleave', () => { tip.hidden = true; });
+    });
+
+    $('#chart-table').innerHTML = `<table><thead><tr><th>${paso === 7 ? 'Semana' : 'Día'}</th><th class="r">Ventas</th><th class="r">Pedidos</th></tr></thead><tbody>` +
+      baldes.filter(b => b.ventas).map(b => `<tr><td>${fechaCorta(b.desde)}</td><td class="r num">${fmt(b.ventas)}</td><td class="r num">${b.pedidos.size}</td></tr>`).join('') +
+      '</tbody></table>';
+  }
+  function niceMax(v) {
+    const p = Math.pow(10, Math.floor(Math.log10(v)));
+    for (const k of [1, 2, 2.5, 5, 10]) if (v <= k * p) return k * p;
+    return 10 * p;
+  }
+  let resizeTimer;
+  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => D && renderGrafico(), 150); });
+
+  function renderUltimas() {
+    const ventas = new Map();
+    for (const v of D.ventas) {
+      const x = ventas.get(v.venta_id) || { id: v.venta_id, fecha: v.fecha, cliente: v.cliente, barrio: v.barrio, pago: v.pago, total: 0, items: 0, estado: v.estado };
+      x.total += v.total_linea; x.items += v.cantidad;
+      ventas.set(v.venta_id, x);
+    }
+    const lista = [...ventas.values()].sort((a, b) => b.fecha - a.fecha).slice(0, 12);
+    if (!lista.length) { $('#ultimas').innerHTML = '<p class="empty">Todavía no hay ventas. Registrá la primera en "Nueva venta".</p>'; return; }
+    $('#ultimas').innerHTML = `<table><thead><tr><th>Venta</th><th>Fecha</th><th>Cliente</th><th class="hide-sm">Barrio</th><th class="hide-sm">Pago</th><th class="r">Total</th><th class="r"></th></tr></thead><tbody>` +
+      lista.map(v => {
+        const anulada = v.estado === 'Anulada';
+        const accion = anulada ? estado('crit', 'Anulada')
+          : anulando === v.id ? `<span class="muted">¿Anular?</span> <button class="link-btn" data-anular-si="${esc(v.id)}">Sí</button> <button class="link-btn" data-anular-no>No</button>`
+          : `<button class="link-btn" data-anular="${esc(v.id)}">Anular</button>`;
+        return `<tr class="${anulada ? 'anulada' : ''}"><td>${esc(v.id)}</td><td class="num">${fechaHora(v.fecha)}</td><td>${esc(v.cliente)}</td><td class="hide-sm">${esc(v.barrio)}</td><td class="hide-sm">${esc(v.pago)}</td><td class="r num">${fmt(v.total)}</td><td class="r">${accion}</td></tr>`;
+      }).join('') + '</tbody></table>';
+  }
+  $('#ultimas').addEventListener('click', async e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.anular) { anulando = b.dataset.anular; renderUltimas(); return; }
+    if (b.hasAttribute('data-anular-no')) { anulando = null; renderUltimas(); return; }
+    if (b.dataset.anularSi) {
+      b.disabled = true;
+      try { anulando = null; aplicarRespuesta(await llamar('anularVenta', b.dataset.anularSi)); }
+      catch (err) { aviso(mensajeError(err), true); renderUltimas(); }
+    }
+  });
+
+  // ───────── selects ─────────
+  function llenarSelects() {
+    const activos = D.productos.filter(p => p.activo).sort((a, b) => nombreProd(a).localeCompare(nombreProd(b)));
+    const opcionesProd = activos.map(p => `<option value="${esc(p.id)}">${esc(nombreProd(p))} · stock ${p.stock}</option>`).join('');
+    for (const sel of ['#add-prod', '#c-prod']) {
+      const actual = $(sel).value;
+      $(sel).innerHTML = '<option value="">Elegí un producto…</option>' + opcionesProd;
+      if (actual) $(sel).value = actual;
+    }
+    const opciones = (lista, conVacio) => (conVacio ? '<option value=""></option>' : '') + lista.map(x => `<option>${esc(x)}</option>`).join('');
+    const mantener = (sel, html) => { const v = $(sel).value; $(sel).innerHTML = html; if (v) $(sel).value = v; };
+    mantener('#v-barrio', opciones([...D.config.barrios, 'Otro'], true));
+    mantener('#v-pago', opciones(D.config.formas_pago));
+    mantener('#g-cat', opciones(D.config.categorias_gasto));
+    if (!$('#v-fecha').value) $('#v-fecha').value = aInputLocal(new Date(), true);
+    if (!$('#c-fecha').value) $('#c-fecha').value = aInputLocal(new Date());
+    if (!$('#g-fecha').value) $('#g-fecha').value = aInputLocal(new Date());
+  }
+
+  // ───────── nueva venta ─────────
+  function agregarItem(id, cantidad, precio) {
+    const p = D.porId[id]; if (!p) return;
+    const ya = venta.find(it => it.id === id);
+    if (ya) ya.cantidad += cantidad;
+    else venta.push({ id, cantidad, precio: precio != null ? precio : p.precio });
+  }
+
+  $('#add-prod').addEventListener('change', () => {
+    const p = D.porId[$('#add-prod').value];
+    $('#add-stock').textContent = p ? `Stock: ${p.stock} · Precio de lista: ${fmt(p.precio)} · Costo: ${fmt(p.costo)}` : '';
+  });
+  $('#add-btn').addEventListener('click', () => {
+    const id = $('#add-prod').value, cant = Math.round(Number($('#add-qty').value));
+    if (!id) { aviso('Elegí un producto.', true); return; }
+    if (!(cant > 0)) { aviso('La cantidad tiene que ser mayor a 0.', true); return; }
+    agregarItem(id, cant);
+    $('#add-qty').value = 1;
+    renderVenta();
+  });
+
+  function renderVenta() {
+    const filas = venta.map((it, i) => {
+      const p = D.porId[it.id];
+      const falta = p.stock < it.cantidad;
+      return `<tr><td>${esc(nombreProd(p))}${falta ? `<div>${estado(p.stock <= 0 ? 'crit' : 'warn', `Quedan ${p.stock}`)}</div>` : ''}</td>
+        <td class="r"><input class="qty num" type="number" min="1" value="${it.cantidad}" data-i="${i}" data-k="cantidad" aria-label="Cantidad"></td>
+        <td class="r"><input class="num" type="number" min="0" value="${it.precio}" data-i="${i}" data-k="precio" aria-label="Precio unitario"></td>
+        <td class="r num hide-sm">${p.stock}</td>
+        <td class="r num">${fmt(it.precio * it.cantidad)}</td>
+        <td class="r"><button class="link-btn" type="button" data-quitar="${i}">Quitar</button></td></tr>`;
+    });
+    $('#items').innerHTML = filas.join('');
+    $('#items-empty').hidden = venta.length > 0;
+    const total = venta.reduce((s, it) => s + it.precio * it.cantidad, 0);
+    const costo = venta.reduce((s, it) => s + D.porId[it.id].costo * it.cantidad, 0);
+    $('#v-total').textContent = fmt(total);
+    $('#v-costo').textContent = fmt(costo);
+    $('#v-ganancia').textContent = fmt(total - costo) + (total ? ` (${pct((total - costo) / total)})` : '');
+  }
+  $('#items').addEventListener('change', e => {
+    const inp = e.target.closest('input[data-i]'); if (!inp) return;
+    const v = Number(inp.value);
+    venta[inp.dataset.i][inp.dataset.k] = inp.dataset.k === 'cantidad' ? Math.max(Math.round(v) || 1, 1) : Math.max(v || 0, 0);
+    renderVenta();
+  });
+  $('#items').addEventListener('click', e => {
+    const b = e.target.closest('[data-quitar]'); if (!b) return;
+    venta.splice(Number(b.dataset.quitar), 1); renderVenta();
+  });
+
+  function vaciarVenta() {
+    venta = [];
+    $('#venta-form').reset();
+    $('#v-fecha').value = aInputLocal(new Date(), true);
+    $('#wa-text').value = ''; $('#wa-warn').textContent = '';
+    renderVenta();
+  }
+  $('#v-clear').addEventListener('click', vaciarVenta);
+
+  // Lee el mensaje que arma el catálogo web: "• 2 x Nombre (Marca, tamaño) — $ 77.000" y "Campo: valor".
+  $('#wa-parse').addEventListener('click', () => {
+    const texto = $('#wa-text').value;
+    if (!texto.trim()) { aviso('Pegá primero el mensaje de WhatsApp.', true); return; }
+    const porNombre = Object.fromEntries(D.productos.map(p => [normalizar(nombreProd(p)), p]));
+    const campos = { nombre: 'cliente', telefono: 'telefono', barrio: 'barrio', direccion: 'direccion', pago: 'pago', notas: 'notas' };
+    const form = $('#venta-form');
+    const sinEncontrar = [];
+    let encontrados = 0;
+    venta = [];
+    for (const linea of texto.split(/\r?\n/)) {
+      const item = linea.match(/^\s*[•*-]\s*(\d+)\s*x\s*(.+?)\s+[—–-]\s+\$/);
+      if (item) {
+        const p = porNombre[normalizar(item[2])];
+        if (p) { agregarItem(p.id, Number(item[1])); encontrados++; } else sinEncontrar.push(item[2]);
+        continue;
+      }
+      const campo = linea.match(/^\s*([A-Za-zÁÉÍÓÚáéíóú]+)\s*:\s*(.+)$/);
+      if (campo) {
+        const k = campos[normalizar(campo[1])];
+        if (!k) continue;
+        let valor = campo[2].trim();
+        if (k === 'barrio') valor = D.config.barrios.find(b => normalizar(b) === normalizar(valor)) || 'Otro';
+        if (k === 'pago') valor = D.config.formas_pago.find(f => normalizar(f) === normalizar(valor)) || form.elements.pago.value;
+        form.elements[k].value = valor;
+      }
+    }
+    $('#wa-warn').textContent = sinEncontrar.length ? `No encontré en la planilla: ${sinEncontrar.join('; ')}. Agregalos a mano.` : '';
+    renderVenta();
+    aviso(encontrados ? `Listo: ${encontrados} producto${encontrados === 1 ? '' : 's'} cargado${encontrados === 1 ? '' : 's'}. Revisá y registrá.` : 'No encontré productos en el mensaje.', !encontrados);
+  });
+
+  $('#venta-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const f = e.target;
+    if (!venta.length) { aviso('Agregá al menos un producto.', true); return; }
+    if (!f.elements.cliente.value.trim()) { aviso('Falta el nombre del cliente.', true); f.elements.cliente.focus(); return; }
+    const datos = Object.fromEntries(new FormData(f));
+    datos.permitirSinStock = f.elements.permitirSinStock.checked;
+    datos.fecha = f.elements.fecha.value ? new Date(f.elements.fecha.value).toISOString() : '';
+    datos.items = venta.map(it => ({ id: it.id, cantidad: it.cantidad, precio: it.precio }));
+    const btn = $('#v-submit'); btn.disabled = true; btn.textContent = 'Registrando…';
+    try { aplicarRespuesta(await llamar('registrarVenta', datos)); vaciarVenta(); }
+    catch (err) { aviso(mensajeError(err), true); }
+    finally { btn.disabled = false; btn.textContent = 'Registrar venta'; }
+  });
+
+  // ───────── stock ─────────
+  document.getElementById('stock-filtro').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    filtroStock = b.dataset.f;
+    document.querySelectorAll('#stock-filtro button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    renderStock();
+  });
+
+  function analisisStock() {
+    const hace30 = new Date(Date.now() - 30 * DIA);
+    const vendidos = {};
+    for (const v of lineasValidas()) if (v.fecha >= hace30) vendidos[v.producto_id] = (vendidos[v.producto_id] || 0) + v.cantidad;
+    return D.productos.filter(p => p.activo).map(p => {
+      const v30 = vendidos[p.id] || 0, ritmo = v30 / 30;
+      const objetivo = Math.max(p.stock_minimo, Math.ceil(ritmo * D.config.dias_cobertura));
+      const nivel = p.stock <= 0 ? 'crit' : p.stock <= p.stock_minimo ? 'warn' : 'good';
+      return { p, v30, cobertura: ritmo ? p.stock / ritmo : null, reponer: Math.max(objetivo - p.stock, 0), nivel };
+    });
+  }
+
+  function renderStock() {
+    const filas = analisisStock();
+    const sin = filas.filter(f => f.nivel === 'crit').length, bajo = filas.filter(f => f.nivel === 'warn').length;
+    $('#stock-alerts').innerHTML = (sin ? estado('crit', `${sin} sin stock`) : '') + (bajo ? estado('warn', `${bajo} con stock bajo`) : '') + (!sin && !bajo ? estado('good', 'Todo el stock está por encima del mínimo') : '');
+    const orden = { crit: 0, warn: 1, good: 2 };
+    const visibles = filas
+      .filter(f => filtroStock === 'todos' || (filtroStock === 'alertas' ? f.nivel !== 'good' : f.reponer > 0))
+      .sort((a, b) => orden[a.nivel] - orden[b.nivel] || b.reponer - a.reponer || nombreProd(a.p).localeCompare(nombreProd(b.p)));
+    const texto = { crit: 'Sin stock', warn: 'Stock bajo', good: 'OK' };
+    $('#stock-table').innerHTML = visibles.length ? `<table><thead><tr><th>Producto</th><th>Estado</th><th class="r">Stock</th><th class="r hide-sm">Mínimo</th><th class="r">Vendidos 30 d</th><th class="r hide-sm">Alcanza para</th><th class="r">Reponer</th><th class="r hide-sm">Costo</th><th class="r hide-sm">Precio</th><th class="r hide-sm">Margen</th></tr></thead><tbody>` +
+      visibles.map(f => `<tr><td>${esc(nombreProd(f.p))}</td><td>${estado(f.nivel, texto[f.nivel])}</td>
+        <td class="r num">${f.p.stock}</td><td class="r num hide-sm">${f.p.stock_minimo}</td><td class="r num">${f.v30}</td>
+        <td class="r num hide-sm">${f.cobertura == null ? '—' : Math.floor(f.cobertura) + ' días'}</td>
+        <td class="r num"><b>${f.reponer || '—'}</b></td>
+        <td class="r num hide-sm">${fmt(f.p.costo)}</td><td class="r num hide-sm">${fmt(f.p.precio)}</td>
+        <td class="r num hide-sm">${f.p.precio && f.p.costo ? pct((f.p.precio - f.p.costo) / f.p.precio) : '—'}</td></tr>`).join('') + '</tbody></table>'
+      : '<p class="empty">No hay productos para este filtro.</p>';
+    $('#stock-note').textContent = `"Reponer" sugiere lo necesario para ${D.config.dias_cobertura} días de ventas según los últimos 30 días, y nunca menos que el mínimo. Precios, mínimos y productos nuevos se editan en la planilla (hoja Productos).`;
+  }
+
+  // ───────── mercadería y gastos ─────────
+  function previewCompra() {
+    const f = $('#compra-form'), p = D.porId[f.elements.producto_id.value];
+    const cant = Number(f.elements.cantidad.value), costo = Number(f.elements.costo_unit.value);
+    if (!p) { $('#c-preview').textContent = ''; return; }
+    let t = `Stock actual: ${p.stock} · Costo actual: ${fmt(p.costo)}`;
+    if (cant > 0 && costo >= 0 && f.elements.costo_unit.value !== '') {
+      const base = Math.max(p.stock, 0);
+      const nuevo = base > 0 ? (base * p.costo + cant * costo) / (base + cant) : costo;
+      t += ` → quedaría stock ${p.stock + cant}, costo ${fmt(nuevo)}, total de la compra ${fmt(cant * costo)}`;
+      if (p.precio) t += ` (margen ${pct((p.precio - nuevo) / p.precio)})`;
+    }
+    $('#c-preview').textContent = t;
+  }
+  $('#compra-form').addEventListener('input', previewCompra);
+
+  async function enviarForm(e, fn, preparar) {
+    e.preventDefault();
+    const f = e.target, btn = f.querySelector('[type=submit]'), txt = btn.textContent;
+    const datos = Object.fromEntries(new FormData(f));
+    if (datos.fecha) datos.fecha = new Date(datos.fecha + 'T12:00:00').toISOString();
+    btn.disabled = true; btn.textContent = 'Guardando…';
+    try {
+      aplicarRespuesta(await llamar(fn, preparar ? preparar(datos) : datos));
+      const fecha = f.elements.fecha.value; f.reset(); f.elements.fecha.value = fecha;
+      previewCompra();
+    } catch (err) { aviso(mensajeError(err), true); }
+    finally { btn.disabled = false; btn.textContent = txt; }
+  }
+  $('#compra-form').addEventListener('submit', e => enviarForm(e, 'registrarCompra'));
+  $('#gasto-form').addEventListener('submit', e => enviarForm(e, 'registrarGasto'));
+
+  function renderMovimientos() {
+    const movs = [
+      ...D.compras.map(c => ({ fecha: c.fecha, tipo: 'Mercadería', detalle: `${c.cantidad} u. · ${c.producto}${c.proveedor ? ' · ' + c.proveedor : ''}`, monto: c.total })),
+      ...D.gastos.map(g => ({ fecha: g.fecha, tipo: g.categoria || 'Gasto', detalle: g.concepto + (g.notas ? ' · ' + g.notas : ''), monto: g.monto })),
+    ].sort((a, b) => b.fecha - a.fecha).slice(0, 20);
+    $('#movimientos').innerHTML = movs.length ? `<table><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th class="r">Monto</th></tr></thead><tbody>` +
+      movs.map(m => `<tr><td class="num">${fechaCorta(m.fecha)}</td><td>${esc(m.tipo)}</td><td>${esc(m.detalle)}</td><td class="r num">${fmt(m.monto)}</td></tr>`).join('') + '</tbody></table>'
+      : '<p class="empty">Todavía no hay ingresos de mercadería ni gastos.</p>';
+  }
+
+  cargar();
+})();
+</script>
+</body>
+</html>
