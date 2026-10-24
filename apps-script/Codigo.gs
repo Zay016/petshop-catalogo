@@ -8,6 +8,10 @@
  * usa su propia cuenta de Google y solo entra quien tenga la planilla compartida.
  */
 
+// Solo si el proyecto se creó suelto (desde script.google.com y no desde Extensiones → Apps Script):
+// el ID de la planilla, que es la parte de su URL entre /d/ y /edit.
+const ID_PLANILLA = '';
+
 // Columnas de cada hoja. El orden solo importa al crear la hoja: después se lee y escribe por nombre.
 const HOJAS = {
   productos: { nombre: 'Productos', columnas: ['id', 'nombre', 'marca', 'tamano', 'mascota', 'categoria', 'costo', 'precio', 'stock', 'stock_minimo', 'foto', 'activo'] },
@@ -75,7 +79,8 @@ function onEdit(e) {
 
 /** Crea las hojas que falten, con encabezados, formatos y listas desplegables. Se puede correr de nuevo sin perder datos. */
 function instalar() {
-  const ss = SpreadsheetApp.getActive();
+  const vinculado = SpreadsheetApp.getActive();
+  const ss = vinculado || libro_();
   PropertiesService.getScriptProperties().setProperty('SHEET_ID', ss.getId());
 
   for (const def of Object.values(HOJAS)) {
@@ -105,8 +110,17 @@ function instalar() {
     if (!nuestra && sh.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(sh);
   }
 
+  // Un proyecto suelto no recibe onOpen/onEdit de la planilla: se crean como activadores instalables.
+  if (!vinculado) instalarActivadores_(ss);
+
   actualizarCatalogo();
   return 'Listo: hojas creadas y catálogo actualizado.';
+}
+
+function instalarActivadores_(ss) {
+  const existentes = ScriptApp.getProjectTriggers().map(t => t.getHandlerFunction());
+  if (!existentes.includes('onOpen')) ScriptApp.newTrigger('onOpen').forSpreadsheet(ss).onOpen().create();
+  if (!existentes.includes('onEdit')) ScriptApp.newTrigger('onEdit').forSpreadsheet(ss).onEdit().create();
 }
 
 function formatear_() {
@@ -282,12 +296,15 @@ function probar() {
 // ───────────────────────── Auxiliares ─────────────────────────
 
 function libro_() {
-  const id = PropertiesService.getScriptProperties().getProperty('SHEET_ID');
+  const id = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || ID_PLANILLA;
+  let ss;
   try {
-    return id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActive();
+    ss = id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActive();
   } catch (err) {
     throw new Error('Tu cuenta no tiene acceso a la planilla de gestión. Pedile a quien la administra que te la comparta.');
   }
+  if (!ss) throw new Error('El proyecto no está vinculado a ninguna planilla: completá ID_PLANILLA al principio de Codigo.gs.');
+  return ss;
 }
 
 function hoja_(clave) {

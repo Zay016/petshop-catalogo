@@ -20,6 +20,8 @@ El panel es privado: los datos viven en una planilla de Google de **gzaylene@gma
 4. Al lado de **Archivos**, tocá **+ → HTML**, ponele de nombre `Panel` (sin `.html`) y pegá el contenido de `Panel.html`.
 5. Guardá con el ícono del disquete.
 
+Si el proyecto quedó creado suelto (desde script.google.com y no desde Extensiones → Apps Script), completá `ID_PLANILLA` al principio de `Codigo.gs` con el ID de la planilla, que es la parte de su URL entre `/d/` y `/edit`. Con eso, `instalar` crea también los activadores del menú y de la actualización del catálogo, y Google pide un permiso más.
+
 ## 3. Crear las hojas
 
 1. Arriba, en el selector de funciones, elegí **instalar** y tocá **Ejecutar**.
