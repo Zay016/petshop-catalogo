@@ -38,9 +38,11 @@
   $("#zonas-body").innerHTML = C.zonas.map(z =>
     `<tr><td>${z.barrio}</td><td>${z.dias}</td><td>${z.costo ? fmt(z.costo) : "Gratis"}</td></tr>`
   ).join("");
+  const todoGratis = C.zonas.every(z => !z.costo);
   $("#delivery-sub").textContent =
     `Entregamos ${C.horarioEntrega}. ` +
-    (C.envioGratisDesde ? `Envío gratis en compras desde ${fmt(C.envioGratisDesde)}. ` : "") +
+    (todoGratis ? "El envío es gratis en todas las zonas. "
+      : C.envioGratisDesde ? `Envío gratis en compras desde ${fmt(C.envioGratisDesde)}. ` : "") +
     `Pagás con ${C.formasDePago.join(", ").replace(/, ([^,]*)$/, " o $1")}.`;
   $("#barrio").innerHTML = `<option value="">Elegí tu barrio</option>` +
     C.zonas.map(z => `<option>${z.barrio}</option>`).join("");

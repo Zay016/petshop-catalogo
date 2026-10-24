@@ -6,21 +6,21 @@ window.CONFIG = {
 
   // Número de WhatsApp en formato internacional, sin +, espacios ni guiones.
   // Ejemplo Argentina celular: 54 9 11 1234-5678  ->  "5491112345678"
-  whatsapp: "5491100000000",
+  whatsapp: "5491154880092",
 
   instagram: "",                       // ej: "azabachepet" (vacío = no se muestra)
 
   // Zonas de entrega propias. costo = envío en pesos (0 = gratis).
   zonas: [
-    { barrio: "Caballito",    dias: "Lunes y jueves",     costo: 2500 },
-    { barrio: "Flores",       dias: "Lunes y jueves",     costo: 2500 },
-    { barrio: "Villa Crespo", dias: "Martes y viernes",   costo: 3000 },
-    { barrio: "Palermo",      dias: "Martes y viernes",   costo: 3500 },
-    { barrio: "Microcentro",  dias: "Miércoles",          costo: 3500 },
+    { barrio: "Caballito",    dias: "Lunes a sábados", costo: 0 },
+    { barrio: "Flores",       dias: "Lunes a sábados", costo: 0 },
+    { barrio: "Villa Crespo", dias: "Lunes a sábados", costo: 0 },
+    { barrio: "Palermo",      dias: "Lunes a sábados", costo: 0 },
+    { barrio: "Microcentro",  dias: "Lunes a sábados", costo: 0 },
   ],
 
-  // Pedido mínimo para envío gratis (0 = sin envío gratis).
-  envioGratisDesde: 60000,
+  // Pedido mínimo para envío gratis (0 = no se aplica; usalo si algún barrio tiene costo).
+  envioGratisDesde: 0,
 
   horarioEntrega: "de 10 a 19 h",
   formasDePago: ["Efectivo", "Transferencia", "Mercado Pago"],
