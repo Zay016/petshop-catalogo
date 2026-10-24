@@ -8,8 +8,9 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Jost:wght@400;500;600&display=swap">
   <style>
     :root {
-      --bg: #fefbf4; --surface: #ffffff; --ink: #1b1a16; --muted: #6b675c; --line: #e8e3d5;
-      --brand: #626e3e; --brand-dark: #4c5630; --brand-soft: #eef0e2; --track: #f1eee4;
+      /* Paleta de la marca: azul intenso, celeste grisáceo, gris perla, blanco cálido y azul pizarra */
+      --bg: #faf9f6; --surface: #ffffff; --ink: #42566d; --muted: #5f7083; --line: #dde4eb;
+      --brand: #2457d6; --brand-dark: #1a44ad; --brand-soft: #e3ecf7; --track: #e7ecf1; --detail: #b9d2e8;
       --warn: #8a5300; --warn-bg: #fdf1dc; --crit: #b42318; --crit-bg: #fdecea; --good: #3d6b35; --good-bg: #e9f2e5;
       --radius: 14px; --serif: "DM Serif Display", Georgia, serif;
       font-family: "Jost", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink);
@@ -30,8 +31,8 @@
     .top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 60px; }
     .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .brand img { height: 34px; width: auto; }
-    .brand b { font-family: var(--serif); font-weight: 400; font-size: 1.3rem; white-space: nowrap; }
-    .brand b em { font-style: normal; color: var(--brand); }
+    .brand b { font-family: var(--serif); font-weight: 400; font-size: 1.3rem; white-space: nowrap; color: var(--brand); }
+    .brand b em { font-style: normal; }
     .brand .role { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
     .top-actions { display: flex; align-items: center; gap: 8px; }
     .user { font-size: .85rem; color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
