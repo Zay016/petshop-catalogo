@@ -42,6 +42,14 @@
     (todoGratis ? "El envío es gratis en todas las zonas. "
       : C.envioGratisDesde ? `Envío gratis en compras desde ${fmt(C.envioGratisDesde)}. ` : "") +
     `Pagás con ${C.formasDePago.join(", ").replace(/, ([^,]*)$/, " o $1")}.`;
+  // Franja de beneficios
+  const dias = [...new Set(C.zonas.map(z => z.dias))];
+  $("#perk-envio").textContent = todoGratis ? "Envío gratis" : "Envío a domicilio";
+  $("#perk-envio-sub").textContent = `en ${C.zonas.length} barrios`;
+  $("#perk-dias").textContent = dias.length === 1 ? dias[0] : "Entregas en la semana";
+  $("#perk-dias-sub").textContent = C.horarioEntrega;
+  $("#perk-pago").textContent = C.formasDePago.join(", ").replace(/, ([^,]*)$/, " o $1").toLowerCase()
+    .replace("mercado pago", "Mercado Pago");
   $("#barrio").innerHTML = `<option value="">Elegí tu barrio</option>` +
     C.zonas.map(z => `<option>${z.barrio}</option>`).join("");
   $("#pago").innerHTML = C.formasDePago.map(f => `<option>${f}</option>`).join("");
@@ -49,20 +57,31 @@
     `© ${new Date().getFullYear()} ${C.nombre} · Pedidos por <a href="https://wa.me/${C.whatsapp}" target="_blank" rel="noopener">WhatsApp</a>` +
     (C.instagram ? ` · <a href="https://instagram.com/${C.instagram}" target="_blank" rel="noopener">Instagram</a>` : "");
 
-  // ---------- Filtros ----------
+  // ---------- Filtros (están en la barra de arriba) ----------
+  // Si se filtra desde la portada, bajar hasta los productos para ver el resultado.
+  function irAlCatalogo() {
+    const r = $("#catalogo").getBoundingClientRect();
+    if (r.top > innerHeight * 0.5 || r.bottom < 200) {
+      // la barra de arriba es fija y su alto cambia según el ancho de pantalla
+      scrollTo({ top: r.top + scrollY - $(".topbar").offsetHeight - 12, behavior: "smooth" });
+    }
+  }
   $("#f-mascota").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
     filtros.mascota = b.dataset.v;
     for (const x of $("#f-mascota").children) x.setAttribute("aria-selected", x === b);
     renderGrid();
+    irAlCatalogo();
   });
   $("#f-categoria").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
     filtros.categoria = b.dataset.v;
     for (const x of $("#f-categoria").children) x.setAttribute("aria-pressed", x === b);
     renderGrid();
+    irAlCatalogo();
   });
-  $("#f-texto").addEventListener("input", e => { filtros.texto = e.target.value; renderGrid(); });
+  if (matchMedia("(max-width: 520px)").matches) $("#f-texto").placeholder = "Buscar…";
+  $("#f-texto").addEventListener("input", e => { filtros.texto = e.target.value; renderGrid(); irAlCatalogo(); });
 
   const normalizar = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
@@ -93,7 +112,7 @@
       ? `<img src="${esc(p.foto)}" alt="${esc(`${p.nombre} ${p.marca} ${p.tamano}`)}" loading="lazy">`
       : `<svg class="ph" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-paw"/></svg>`;
     return `<article class="card${p.stock ? "" : " off"}">
-      <div class="thumb">${foto}
+      <div class="thumb${p.mascota === "gato" ? " gato" : ""}">${foto}
         <span class="tag ${p.stock ? "ok" : "no"}">${p.stock ? "Disponible" : "Sin stock"}</span>
       </div>
       <div class="card-body">

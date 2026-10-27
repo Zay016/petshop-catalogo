@@ -2,7 +2,7 @@
 window.CONFIG = {
   nombre: "Azabache Pet",              // la última palabra se muestra en verde, como en el logo
   lema: "Pet shop & delivery",
-  eslogan: "Alimento y accesorios para tu mascota, con entrega en tu barrio",
+  eslogan: "Alimentos y accesorios para tu mascota, con entrega en tu barrio",
 
   // Número de WhatsApp en formato internacional, sin +, espacios ni guiones.
   // Ejemplo Argentina celular: 54 9 11 1234-5678  ->  "5491112345678"

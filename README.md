@@ -30,7 +30,7 @@ Es HTML, CSS y JavaScript puro: no tiene backend, build ni dependencias.
 | `app.js`       | Filtros, carrito, validación y armado del mensaje |
 | `img/`         | Logo (`logo.png`, `logo-marca.png`, `favicon.png`) y fotos de los productos |
 
-Los colores y las tipografías salen del logo: fondo crema `#fefbf4`, negro azabache `#1b1a16` y verde oliva `#626e3e`, con DM Serif Display para títulos y Jost para el texto. Están definidos como variables al principio de `styles.css`.
+Los colores y las tipografías salen del logo: azul petróleo `#015970`, ámbar `#FDA805` y turquesa `#16B8C8`, con Fredoka (redondeada, como el logo) para títulos y Nunito para el texto. Están definidos como variables al principio de `styles.css`.
 
 ## Cómo usarlo
 
