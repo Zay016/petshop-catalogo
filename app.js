@@ -45,11 +45,12 @@
   // Franja de beneficios
   const dias = [...new Set(C.zonas.map(z => z.dias))];
   $("#perk-envio").textContent = todoGratis ? "Envío gratis" : "Envío a domicilio";
-  $("#perk-envio-sub").textContent = `en ${C.zonas.length} barrios`;
+  const mayuscula = s => s.charAt(0).toUpperCase() + s.slice(1);
+  $("#perk-envio-sub").textContent = `En ${C.zonas.length} barrios`;
   $("#perk-dias").textContent = dias.length === 1 ? dias[0] : "Entregas en la semana";
-  $("#perk-dias-sub").textContent = C.horarioEntrega;
-  $("#perk-pago").textContent = C.formasDePago.join(", ").replace(/, ([^,]*)$/, " o $1").toLowerCase()
-    .replace("mercado pago", "Mercado Pago");
+  $("#perk-dias-sub").textContent = mayuscula(C.horarioEntrega);
+  $("#perk-pago").textContent = mayuscula(C.formasDePago.join(", ").replace(/, ([^,]*)$/, " o $1").toLowerCase()
+    .replace("mercado pago", "Mercado Pago"));
   $("#barrio").innerHTML = `<option value="">Elegí tu barrio</option>` +
     C.zonas.map(z => `<option>${z.barrio}</option>`).join("");
   $("#pago").innerHTML = C.formasDePago.map(f => `<option>${f}</option>`).join("");
